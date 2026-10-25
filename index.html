@@ -18,27 +18,51 @@
   </style>
 </head>
 <body>
-  <h3>Rapid Copy & Xóa Dòng</h3>
+  <h3>Rapid Copy & Xóa Dòng (Tự Động Lưu)</h3>
   <textarea id="input" placeholder="Dán danh sách dài của bạn vào đây..."></textarea>
   <button onclick="makeList()">TẠO DANH SÁCH BẤM COPY</button>
   <div id="list"></div>
 
   <script>
+    let currentLines = [];
+
+    // Tự động tải danh sách cũ đã lưu khi mở trang web
+    window.onload = function() {
+      const saved = localStorage.getItem('my_saved_lines');
+      if (saved) {
+        currentLines = JSON.parse(saved);
+        renderList();
+      }
+    };
+
     function makeList() {
       const text = document.getElementById('input').value;
-      const lines = text.split('\n').filter(l => l.trim() !== '');
+      const newLines = text.split('\n').filter(l => l.trim() !== '');
+      if (newLines.length > 0) {
+        currentLines = newLines;
+        saveAndRender();
+        document.getElementById('input').value = '';
+      }
+    }
+
+    function saveAndRender() {
+      localStorage.setItem('my_saved_lines', JSON.stringify(currentLines));
+      renderList();
+    }
+
+    function renderList() {
       const container = document.getElementById('list');
       container.innerHTML = '';
       
-      lines.forEach(line => {
+      currentLines.forEach((line, index) => {
         const btn = document.createElement('div');
         btn.className = 'line-btn';
         btn.innerText = line;
         
-        // Chạm/Click là Copy + Xóa dòng ngay
         btn.onclick = function() {
           navigator.clipboard.writeText(line);
-          this.remove();
+          currentLines.splice(index, 1); // Xóa dòng khỏi mảng
+          saveAndRender(); // Lưu lại danh sách mới
         };
         container.appendChild(btn);
       });
